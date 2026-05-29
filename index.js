@@ -9,103 +9,151 @@ const CONFIG = {
     bot: {
         username: 'SetupBot',            // Ник бота (должен быть свободен)
         version: '1.20.1',
-        auth: 'offline'                  // Для Aternos обычно 'offline'
+        auth: 'offline'
     },
-    debug: true, // Показывать все действия в логах GitHub
+    debug: true,
 };
 
-// === ИЕРАРХИЯ РАНГОВ (ОТ СЛАБОГО К СИЛЬНОМУ) ===
-// Твой полный список из 16 рангов. Для каждого указаны:
-// - name: внутреннее имя группы (для LuckPerms)
-// - prefix: префикс, как у тебя
-// - weight: вес (1 — слабый, 16 — сильный)
-// - permissions: МАССИВ КОНКРЕТНЫХ ПРАВ, которые получит эта группа
+// === ИЕРАРХИЯ РАНГОВ (ПО ПОРЯДКУ: от слабого к сильному) ===
+// Более сильный ранг наследует права всех предыдущих
+// У каждого ранга прописываем ТОЛЬКО НОВЫЕ доступы (которые добавляются к старым)
 const RANKS = [
-    {   name: "Premium",
+    { 
+        name: "Premium",
         prefix: "&7&l[Premium]",
-        weight: 1,
-        permissions: [ "essentials.kit.premium" ]
+        permissions: [
+            "essentials.kit.premium"
+        ]
     },
-    {   name: "Creative",
+    { 
+        name: "Creative",
         prefix: "&a&l[Creative]",
-        weight: 2,
-        permissions: [ "essentials.gamemode.creative", "essentials.gamemode.survival" ] // /gm 1 и /gm 0
+        permissions: [
+            "essentials.gamemode.creative",
+            "essentials.gamemode.survival",
+            "essentials.fly"
+        ]
     },
-    {   name: "Moder",
+    { 
+        name: "Moder",
         prefix: "&e&l[Moder]",
-        weight: 3,
-        permissions: [ "libertybans.mute.notify", "libertybans.warn" ]
+        permissions: [
+            "libertybans.mute.notify",
+            "libertybans.warn",
+            "essentials.kit.moder"
+        ]
     },
-    {   name: "Admin",
+    { 
+        name: "Admin",
         prefix: "&c&l[Admin]",
-        weight: 4,
-        permissions: [ "libertybans.ban", "libertybans.unban", "essentials.kit.admin" ]
+        permissions: [
+            "libertybans.ban",
+            "libertybans.unban",
+            "essentials.kit.admin",
+            "essentials.gamemode"
+        ]
     },
-    {   name: "Lord",
+    { 
+        name: "Lord",
         prefix: "&5&l[Lord]",
-        weight: 5,
-        permissions: [ "essentials.kit.lord" ]
+        permissions: [
+            "essentials.kit.lord",
+            "worldguard.region.claim"
+        ]
     },
-    {   name: "HeadAdmin",
+    { 
+        name: "HeadAdmin",
         prefix: "&4&l[Гл. Админ]",
-        weight: 6,
-        permissions: [ "libertybans.*", "worldedit.*" ]
+        permissions: [
+            "libertybans.*",
+            "worldedit.*",
+            "worldguard.*"
+        ]
     },
-    {   name: "Creator",
+    { 
+        name: "Creator",
         prefix: "&9&l[Создатель]",
-        weight: 7,
-        permissions: [ "worldedit.limit.unrestricted" ]
+        permissions: [
+            "worldedit.limit.unrestricted",
+            "worldguard.region.override"
+        ]
     },
-    {   name: "Founder",
+    { 
+        name: "Founder",
         prefix: "&b&l[Основатель]",
-        weight: 8,
-        permissions: [ "essentials.kit.founder" ]
+        permissions: [
+            "essentials.kit.founder",
+            "essentials.god"
+        ]
     },
-    {   name: "Owner",
+    { 
+        name: "Owner",
         prefix: "&6&l[Владелец]",
-        weight: 9,
-        permissions: [ "luckperms.*", "essentials.*" ]
+        permissions: [
+            "luckperms.*",
+            "essentials.*",
+            "worldedit.*"
+        ]
     },
-    {   name: "Console",
+    { 
+        name: "Console",
         prefix: "&8&l[Консоль]",
-        weight: 10,
-        permissions: [ "*" ] // Полный доступ
+        permissions: [
+            "*"
+        ]
     },
-    {   name: "Caesar",
+    { 
+        name: "Caesar",
         prefix: "&d&l[Цезарь]",
-        weight: 11,
-        permissions: [ "essentials.kit.caesar" ]
+        permissions: [
+            "essentials.kit.caesar",
+            "worldedit.navigation.thru"
+        ]
     },
-    {   name: "Server",
+    { 
+        name: "Server",
         prefix: "&e&l[Сервер]",
-        weight: 12,
-        permissions: []
+        permissions: [
+            "essentials.kit.server"
+        ]
     },
-    {   name: "Helper",
+    { 
+        name: "Helper",
         prefix: "&b&l[Helper]",
-        weight: 13,
-        permissions: [ "libertybans.mute", "libertybans.warn.notify", "essentials.kit.helper" ]
+        permissions: [
+            "libertybans.mute",
+            "libertybans.warn.notify",
+            "essentials.kit.helper"
+        ]
     },
-    {   name: "HYPE",
+    { 
+        name: "HYPE",
         prefix: "&6&l[HYPE]",
-        weight: 14,
-        permissions: [ "essentials.kit.hype" ]
+        permissions: [
+            "essentials.kit.hype",
+            "essentials.kit.donate"
+        ]
     },
-    {   name: "Staff",
+    { 
+        name: "Staff",
         prefix: "&d&l[STAFF]",
-        weight: 15,
-        permissions: [ "libertybans.*.silent", "luckperms.user.groups" ]
+        permissions: [
+            "libertybans.*.silent",
+            "luckperms.user.groups",
+            "worldedit.clipboard"
+        ]
     },
-    {   name: "Ruler",
+    { 
+        name: "Ruler",
         prefix: "&r&4&l♛ &c&lПРАВИТЕЛЬ &4&l♛",
-        weight: 16,
-        permissions: [ "*" ] // Полный доступ ко всем командам
+        permissions: [
+            "*"
+        ]
     },
 ];
 
-// === ОСНОВНОЙ КОД БОТА (НЕ МЕНЯТЬ) ===
+// === ОСНОВНОЙ КОД БОТА ===
 let bot = null;
-let currentRankIndex = 0;
 
 function createBot() {
     console.log('🟡 Запуск бота-установщика...');
@@ -129,45 +177,61 @@ function createBot() {
 function sendCommand(command, delay = 1000) {
     return new Promise(resolve => {
         setTimeout(() => {
-            if (CONFIG.debug) console.log(`📝 Отправка команды: ${command}`);
+            if (CONFIG.debug) console.log(`📝 ${command}`);
             bot.chat(command);
             resolve();
         }, delay);
     });
 }
 
-async function setupRank(rank) {
-    console.log(`\n🚀 Настройка ранга: ${rank.name} (вес: ${rank.weight})`);
+async function setupRanks() {
+    console.log("🎬 НАЧАЛО НАСТРОЙКИ СИСТЕМЫ РАНГОВ (С НАСЛЕДОВАНИЕМ)");
     
-    await sendCommand(`/lp creategroup ${rank.name}`, 500);
-    await sendCommand(`/lp group ${rank.name} set weight ${rank.weight}`, 1000);
-    await sendCommand(`/lp group ${rank.name} meta addprefix "${rank.prefix} "`, 1000);
-    
-    for (const perm of rank.permissions) {
-        await sendCommand(`/lp group ${rank.name} permission set ${perm} true`, 800);
+    for (let i = 0; i < RANKS.length; i++) {
+        const rank = RANKS[i];
+        const previousRank = i > 0 ? RANKS[i-1].name : null;
+        
+        console.log(`\n🚀 [${i+1}/${RANKS.length}] Настройка ранга: ${rank.name}`);
+        
+        // 1. Создаём группу
+        await sendCommand(`/lp creategroup ${rank.name}`, 500);
+        
+        // 2. Устанавливаем префикс
+        await sendCommand(`/lp group ${rank.name} meta addprefix "${rank.prefix} "`, 1000);
+        
+        // 3. Устанавливаем вес (для правильной сортировки)
+        await sendCommand(`/lp group ${rank.name} set weight ${i+1}`, 800);
+        
+        // 4. НАСЛЕДОВАНИЕ: более сильный ранг наследует предыдущий
+        if (previousRank) {
+            await sendCommand(`/lp group ${rank.name} parent set ${previousRank}`, 1000);
+            console.log(`   ⬆ Наследует права от ${previousRank}`);
+        }
+        
+        // 5. Выдаём НОВЫЕ права (только для этого ранга)
+        for (const perm of rank.permissions) {
+            await sendCommand(`/lp group ${rank.name} permission set ${perm} true`, 600);
+            if (CONFIG.debug) console.log(`   ✅ + право: ${perm}`);
+        }
+        
+        console.log(`✅ Ранг ${rank.name} полностью настроен (вес: ${i+1})`);
     }
     
-    if (rank.name === "Ruler") {
-        await sendCommand(`/lp group ${rank.name} meta addmeta "Особый-ранг" "Лимитированная привилегия. Полный доступ."`, 800);
-    }
-    
-    console.log(`✅ Ранг ${rank.name} настроен.`);
-}
-
-async function startSetup() {
-    console.log("🎬 НАЧАЛО НАСТРОЙКИ СИСТЕМЫ РАНГОВ (16 шт)");
-    for (const rank of RANKS) {
-        await setupRank(rank);
-    }
     await finalizeSetup();
 }
 
 async function finalizeSetup() {
-    console.log("\n🎉 ВСЕ РАНГИ УСПЕШНО СОЗДАНЫ И НАСТРОЕНЫ!");
-    await sendCommand("Пока шлюхи, я работяга", 2000);
+    console.log("\n🎉 ВСЕ РАНГИ УСПЕШНО СОЗДАНЫ С ПРАВИЛЬНЫМ НАСЛЕДОВАНИЕМ!");
+    console.log("📊 Иерархия выстроена: каждый следующий сильнее предыдущего");
+    
+    await sendCommand("say Пока шлюхи, я работяга! Все ранги настроены с наследованием!", 2000);
+    
+    // Уходим в АФК
     bot.setControlState('sneak', true);
     await sendCommand("/afk", 1000);
-    console.log("💤 Бот в режиме AFK. Можно закрыть вкладку Actions.");
+    
+    console.log("💤 Бот в режиме AFK. Задачи выполнены.");
+    // Бот остаётся висеть на сервере
 }
 
 createBot();
