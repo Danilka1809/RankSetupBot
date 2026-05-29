@@ -1,0 +1,26 @@
+name: Deploy Status Server
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'  # Каждые 5 минут
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Create public folder
+        run: mkdir -p public
+        
+      - name: Run status bot
+        run: node bot.js
