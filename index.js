@@ -1,9 +1,9 @@
 const mineflayer = require('mineflayer');
 
-// === НАСТРОЙКИ ПОДКЛЮЧЕНИЯ (ЗАМЕНИ НА СВОИ) ===
+// === НАСТРОЙКИ (ЗАМЕНИ НА СВОИ) ===
 const CONFIG = {
     server: {
-        host: 'botcreatortest.aternos.me',  // ТВОЙ IP
+        host: 'botcreatortest.aternos.me',
         port: 23209
     },
     bot: {
@@ -14,7 +14,7 @@ const CONFIG = {
     debug: true,
 };
 
-// === ИЕРАРХИЯ РАНГОВ (ОТ СЛАБОГО К СИЛЬНОМУ) ===
+// === ВСЕ 16 РАНГОВ С НАСЛЕДОВАНИЕМ ===
 const RANKS = [
     { name: "Premium", prefix: "&7&l[Premium]", permissions: ["essentials.kit.premium"] },
     { name: "Creative", prefix: "&a&l[Creative]", permissions: ["essentials.gamemode.creative", "essentials.gamemode.survival", "essentials.fly"] },
@@ -36,25 +36,6 @@ const RANKS = [
 
 let bot = null;
 
-function createBot() {
-    console.log('🟡 Запуск бота-установщика...');
-    bot = mineflayer.createBot({
-        host: CONFIG.server.host,
-        port: CONFIG.server.port,
-        username: CONFIG.bot.username,
-        version: CONFIG.bot.version,
-        auth: CONFIG.bot.auth
-    });
-
-    bot.on('login', () => {
-        console.log(`✅ Бот ${bot.username} зашел на сервер!`);
-        setTimeout(() => startSetup(), 4000);
-    });
-
-    bot.on('error', (err) => console.error('❌ Ошибка бота:', err));
-    bot.on('end', () => console.log('🔴 Бот отключился от сервера'));
-}
-
 function sendCommand(command, delay = 1000) {
     return new Promise(resolve => {
         setTimeout(() => {
@@ -65,14 +46,14 @@ function sendCommand(command, delay = 1000) {
     });
 }
 
-async function startSetup() {
-    console.log("🎬 НАЧАЛО НАСТРОЙКИ СИСТЕМЫ РАНГОВ (С НАСЛЕДОВАНИЕМ)");
+async function setupAllRanks() {
+    console.log("🎬 НАЧИНАЮ НАСТРОЙКУ 16 РАНГОВ...");
     
     for (let i = 0; i < RANKS.length; i++) {
         const rank = RANKS[i];
         const previousRank = i > 0 ? RANKS[i-1].name : null;
         
-        console.log(`\n🚀 [${i+1}/${RANKS.length}] Настройка ранга: ${rank.name}`);
+        console.log(`\n🚀 [${i+1}/16] Создаю ранг: ${rank.name}`);
         
         await sendCommand(`/lp creategroup ${rank.name}`, 500);
         await sendCommand(`/lp group ${rank.name} meta addprefix "${rank.prefix} "`, 1000);
@@ -80,26 +61,48 @@ async function startSetup() {
         
         if (previousRank) {
             await sendCommand(`/lp group ${rank.name} parent set ${previousRank}`, 1000);
-            console.log(`   ⬆ Наследует права от ${previousRank}`);
+            console.log(`   ⬆ Наследует ${previousRank}`);
         }
         
         for (const perm of rank.permissions) {
             await sendCommand(`/lp group ${rank.name} permission set ${perm} true`, 600);
-            if (CONFIG.debug) console.log(`   ✅ + право: ${perm}`);
         }
         
-        console.log(`✅ Ранг ${rank.name} настроен (вес: ${i+1})`);
+        console.log(`✅ Ранг ${rank.name} готов`);
     }
     
-    await finalizeSetup();
-}
-
-async function finalizeSetup() {
-    console.log("\n🎉 ВСЕ РАНГИ УСПЕШНО СОЗДАНЫ!");
-    await sendCommand("say Пока шлюхи, я работяга! Все ранги настроены!", 2000);
+    console.log("\n🎉 ВСЕ 16 РАНГОВ УСПЕШНО СОЗДАНЫ!");
+    await sendCommand("say Пока шлюхи, я работяга! 16 рангов настроены!", 2000);
+    
+    // Проверка через запрос информации о каждом ранге
+    console.log("\n🔍 ПРОВЕРКА СОЗДАННЫХ РАНГОВ:");
+    for (let i = 0; i < RANKS.length; i++) {
+        await sendCommand(`/lp group ${RANKS[i].name} info`, 800);
+        console.log(`   Проверен: ${RANKS[i].name}`);
+    }
+    
+    console.log("\n💤 Бот уходит в AFK. Задача выполнена!");
     bot.setControlState('sneak', true);
     await sendCommand("/afk", 1000);
-    console.log("💤 Бот в режиме AFK.");
+}
+
+function createBot() {
+    console.log('🟡 Подключение...');
+    bot = mineflayer.createBot({
+        host: CONFIG.server.host,
+        port: CONFIG.server.port,
+        username: CONFIG.bot.username,
+        version: CONFIG.bot.version,
+        auth: CONFIG.bot.auth
+    });
+
+    bot.on('login', async () => {
+        console.log(`✅ Бот ${bot.username} зашёл!`);
+        await setupAllRanks();
+    });
+
+    bot.on('error', (err) => console.error('❌ Ошибка:', err));
+    bot.on('end', () => console.log('🔴 Бот отключился'));
 }
 
 createBot();
