@@ -3,8 +3,8 @@ const mineflayer = require('mineflayer');
 // ===== НАСТРОЙКИ (ТЫ МЕНЯЕШЬ ЗДЕСЬ) =====
 const CONFIG = {
     server: {
-        host: 'ТВОЙ_СЕРВЕР.aternos.me',  // ЗАМЕНИ НА IP ТВОЕГО СЕРВЕРА
-        port: 25565
+        host: 'botcreatortest.aternos.me',  // ЗАМЕНИ НА IP ТВОЕГО СЕРВЕРА
+        port:  23209
     },
     bot: {
         username: 'RankBot',              // Ник бота
