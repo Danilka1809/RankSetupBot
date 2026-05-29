@@ -3,8 +3,8 @@ const mineflayer = require('mineflayer');
 // === НАСТРОЙКИ ПОДКЛЮЧЕНИЯ (ЗАМЕНИ НА СВОИ) ===
 const CONFIG = {
     server: {
-        host: 'ТВОЙ_СЕРВЕР.aternos.me',  // СЮДА IP твоего Aternos сервера
-        port: 25565,
+        host: 'botcreatortest.aternos.me',  // СЮДА IP твоего Aternos сервера
+        port: 23209,
     },
     bot: {
         username: 'SetupBot',            // Ник бота (должен быть свободен)
