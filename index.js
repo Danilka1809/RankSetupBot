@@ -1,149 +1,173 @@
 const mineflayer = require('mineflayer');
 
-// ===== НАСТРОЙКИ (ТЫ МЕНЯЕШЬ ЗДЕСЬ) =====
+// === НАСТРОЙКИ ПОДКЛЮЧЕНИЯ (ЗАМЕНИ НА СВОИ) ===
 const CONFIG = {
     server: {
-        host: 'botcreatortest.aternos.me',  // ЗАМЕНИ НА IP ТВОЕГО СЕРВЕРА
-        port:  23209
+        host: 'ТВОЙ_СЕРВЕР.aternos.me',  // СЮДА IP твоего Aternos сервера
+        port: 25565,
     },
     bot: {
-        username: 'RankBot',              // Ник бота
-        version: '1.20.1'
+        username: 'SetupBot',            // Ник бота (должен быть свободен)
+        version: '1.20.1',
+        auth: 'offline'                  // Для Aternos обычно 'offline'
     },
-    debug: true
+    debug: true, // Показывать все действия в логах GitHub
 };
 
-// ===== ИЕРАРХИЯ РАНГОВ (ОТ СЛАБОГО К СИЛЬНОМУ) =====
+// === ИЕРАРХИЯ РАНГОВ (ОТ СЛАБОГО К СИЛЬНОМУ) ===
+// Твой полный список из 16 рангов. Для каждого указаны:
+// - name: внутреннее имя группы (для LuckPerms)
+// - prefix: префикс, как у тебя
+// - weight: вес (1 — слабый, 16 — сильный)
+// - permissions: МАССИВ КОНКРЕТНЫХ ПРАВ, которые получит эта группа
 const RANKS = [
-    { name: "Премиум",   prefix: "&7[&eПрем&7] ",   weight: 1 },
-    { name: "Креатив",   prefix: "&7[&aКреат&7] ",  weight: 2 },
-    { name: "Хелпер",    prefix: "&7[&3Хелпер&7] ", weight: 3 },
-    { name: "Модер",     prefix: "&7[&9Модер&7] ",  weight: 4 },
-    { name: "Лорд",      prefix: "&7[&6Лорд&7] ",   weight: 5 },
-    { name: "Админ",     prefix: "&7[&cАдмин&7] ",  weight: 6 },
-    { name: "Гл.Админ",  prefix: "&7[&4Гл.Админ&7] ", weight: 7 },
-    { name: "Цезарь",    prefix: "&7[&5Цезарь&7] ", weight: 8 },
-    { name: "Основатель",prefix: "&7[&dОснователь&7] ", weight: 9 },
-    { name: "Создатель", prefix: "&7[&bСоздатель&7] ", weight: 10 },
-    { name: "Владелец",  prefix: "&7[&2Владелец&7] ", weight: 11 },
-    { name: "Правитель", prefix: "&7[&c♛ Правитель ♛&7] ", weight: 12 }
+    {   name: "Premium",
+        prefix: "&7&l[Premium]",
+        weight: 1,
+        permissions: [ "essentials.kit.premium" ]
+    },
+    {   name: "Creative",
+        prefix: "&a&l[Creative]",
+        weight: 2,
+        permissions: [ "essentials.gamemode.creative", "essentials.gamemode.survival" ] // /gm 1 и /gm 0
+    },
+    {   name: "Moder",
+        prefix: "&e&l[Moder]",
+        weight: 3,
+        permissions: [ "libertybans.mute.notify", "libertybans.warn" ]
+    },
+    {   name: "Admin",
+        prefix: "&c&l[Admin]",
+        weight: 4,
+        permissions: [ "libertybans.ban", "libertybans.unban", "essentials.kit.admin" ]
+    },
+    {   name: "Lord",
+        prefix: "&5&l[Lord]",
+        weight: 5,
+        permissions: [ "essentials.kit.lord" ]
+    },
+    {   name: "HeadAdmin",
+        prefix: "&4&l[Гл. Админ]",
+        weight: 6,
+        permissions: [ "libertybans.*", "worldedit.*" ]
+    },
+    {   name: "Creator",
+        prefix: "&9&l[Создатель]",
+        weight: 7,
+        permissions: [ "worldedit.limit.unrestricted" ]
+    },
+    {   name: "Founder",
+        prefix: "&b&l[Основатель]",
+        weight: 8,
+        permissions: [ "essentials.kit.founder" ]
+    },
+    {   name: "Owner",
+        prefix: "&6&l[Владелец]",
+        weight: 9,
+        permissions: [ "luckperms.*", "essentials.*" ]
+    },
+    {   name: "Console",
+        prefix: "&8&l[Консоль]",
+        weight: 10,
+        permissions: [ "*" ] // Полный доступ
+    },
+    {   name: "Caesar",
+        prefix: "&d&l[Цезарь]",
+        weight: 11,
+        permissions: [ "essentials.kit.caesar" ]
+    },
+    {   name: "Server",
+        prefix: "&e&l[Сервер]",
+        weight: 12,
+        permissions: []
+    },
+    {   name: "Helper",
+        prefix: "&b&l[Helper]",
+        weight: 13,
+        permissions: [ "libertybans.mute", "libertybans.warn.notify", "essentials.kit.helper" ]
+    },
+    {   name: "HYPE",
+        prefix: "&6&l[HYPE]",
+        weight: 14,
+        permissions: [ "essentials.kit.hype" ]
+    },
+    {   name: "Staff",
+        prefix: "&d&l[STAFF]",
+        weight: 15,
+        permissions: [ "libertybans.*.silent", "luckperms.user.groups" ]
+    },
+    {   name: "Ruler",
+        prefix: "&r&4&l♛ &c&lПРАВИТЕЛЬ &4&l♛",
+        weight: 16,
+        permissions: [ "*" ] // Полный доступ ко всем командам
+    },
 ];
 
-// ===== ОСНОВНАЯ ЛОГИКА =====
+// === ОСНОВНОЙ КОД БОТА (НЕ МЕНЯТЬ) ===
 let bot = null;
-let currentIndex = 0;
-let createdRanks = [];
-let failedRanks = [];
+let currentRankIndex = 0;
 
 function createBot() {
-    console.log('🟡 Подключение к серверу...');
-    
+    console.log('🟡 Запуск бота-установщика...');
     bot = mineflayer.createBot({
         host: CONFIG.server.host,
         port: CONFIG.server.port,
         username: CONFIG.bot.username,
         version: CONFIG.bot.version,
-        auth: 'offline'
+        auth: CONFIG.bot.auth
     });
 
     bot.on('login', () => {
-        console.log(`✅ Бот ${CONFIG.bot.username} зашёл на сервер!`);
-        setTimeout(startSetup, 3000);
+        console.log(`✅ Бот ${bot.username} зашел на сервер!`);
+        setTimeout(startSetup, 4000);
     });
 
-    bot.on('chat', (username, message) => {
-        if (CONFIG.debug) console.log(`💬 [${username}]: ${message}`);
-    });
-
-    bot.on('error', (err) => console.error('❌ Ошибка:', err));
-    
-    bot.on('end', () => {
-        console.log('🔴 Бот отключился');
-        // Если не всё создано и не было ошибок — переподключаемся
-        if (currentIndex < RANKS.length && failedRanks.length === 0) {
-            console.log('🟡 Переподключение...');
-            setTimeout(createBot, 5000);
-        }
-    });
+    bot.on('error', (err) => console.error('❌ Ошибка бота:', err));
+    bot.on('end', () => console.log('🔴 Бот отключился от сервера'));
 }
 
-function startSetup() {
-    console.log('🚀 НАЧИНАЮ НАСТРОЙКУ РАНГОВ...');
-    console.log(`📋 Всего рангов: ${RANKS.length}`);
-    setupNextRank();
-}
-
-function setupNextRank() {
-    if (currentIndex >= RANKS.length) {
-        // ВСЕ РАНГИ СОЗДАНЫ — ПРОВЕРЯЕМ И ФИНИШИРУЕМ
-        verifyAndFinish();
-        return;
-    }
-    
-    const rank = RANKS[currentIndex];
-    console.log(`[${currentIndex+1}/${RANKS.length}] Создаю ранг: ${rank.name} (вес: ${rank.weight})`);
-    
-    // Отправляем команды на создание и настройку
-    bot.chat(`/lp creategroup ${rank.name}`);
-    
-    setTimeout(() => {
-        bot.chat(`/lp group ${rank.name} set weight ${rank.weight}`);
-    }, 500);
-    
-    setTimeout(() => {
-        bot.chat(`/lp group ${rank.name} meta addprefix "${rank.prefix}"`);
-    }, 1000);
-    
-    // Ждём 2 секунды и переходим к следующему
-    setTimeout(() => {
-        createdRanks.push(rank.name);
-        currentIndex++;
-        setupNextRank();
-    }, 2000);
-}
-
-function verifyAndFinish() {
-    console.log('🔍 ПРОВЕРЯЮ СОЗДАННЫЕ РАНГИ...');
-    
-    // Проверка: запрашиваем информацию о каждой группе
-    let checkIndex = 0;
-    
-    function checkNext() {
-        if (checkIndex >= createdRanks.length) {
-            finishSetup();
-            return;
-        }
-        
-        const rankName = createdRanks[checkIndex];
-        console.log(`Проверяю ранг: ${rankName}`);
-        bot.chat(`/lp group ${rankName} info`);
-        
+function sendCommand(command, delay = 1000) {
+    return new Promise(resolve => {
         setTimeout(() => {
-            checkIndex++;
-            checkNext();
-        }, 1500);
+            if (CONFIG.debug) console.log(`📝 Отправка команды: ${command}`);
+            bot.chat(command);
+            resolve();
+        }, delay);
+    });
+}
+
+async function setupRank(rank) {
+    console.log(`\n🚀 Настройка ранга: ${rank.name} (вес: ${rank.weight})`);
+    
+    await sendCommand(`/lp creategroup ${rank.name}`, 500);
+    await sendCommand(`/lp group ${rank.name} set weight ${rank.weight}`, 1000);
+    await sendCommand(`/lp group ${rank.name} meta addprefix "${rank.prefix} "`, 1000);
+    
+    for (const perm of rank.permissions) {
+        await sendCommand(`/lp group ${rank.name} permission set ${perm} true`, 800);
     }
     
-    checkNext();
+    if (rank.name === "Ruler") {
+        await sendCommand(`/lp group ${rank.name} meta addmeta "Особый-ранг" "Лимитированная привилегия. Полный доступ."`, 800);
+    }
+    
+    console.log(`✅ Ранг ${rank.name} настроен.`);
 }
 
-function finishSetup() {
-    console.log('🎉 ВСЕ РАНГИ УСПЕШНО СОЗДАНЫ И НАСТРОЕНЫ!');
-    console.log(`✅ Создано рангов: ${createdRanks.length}`);
-    console.log(`❌ Ошибок: ${failedRanks.length}`);
-    
-    // Пишем в чат финальное сообщение
-    bot.chat('Пока шлюхи, я работяга');
-    
-    // Уходим в АФК (бот остаётся на сервере)
-    setTimeout(() => {
-        console.log('💤 Бот уходит в АФК. Остаётся на сервере.');
-        bot.chat('/afk');  // если есть плагин AFK
-        bot.setControlState('sneak', true);  // приседаем (визуально)
-    }, 2000);
-    
-    // Бот НЕ ОТКЛЮЧАЕТСЯ, остаётся висеть
+async function startSetup() {
+    console.log("🎬 НАЧАЛО НАСТРОЙКИ СИСТЕМЫ РАНГОВ (16 шт)");
+    for (const rank of RANKS) {
+        await setupRank(rank);
+    }
+    await finalizeSetup();
 }
 
-// ===== ЗАПУСК =====
+async function finalizeSetup() {
+    console.log("\n🎉 ВСЕ РАНГИ УСПЕШНО СОЗДАНЫ И НАСТРОЕНЫ!");
+    await sendCommand("Пока шлюхи, я работяга", 2000);
+    bot.setControlState('sneak', true);
+    await sendCommand("/afk", 1000);
+    console.log("💤 Бот в режиме AFK. Можно закрыть вкладку Actions.");
+}
+
 createBot();
