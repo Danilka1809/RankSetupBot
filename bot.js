@@ -5,8 +5,8 @@ const fs = require('fs');
 // === НАСТРОЙКИ ===
 const CONFIG = {
     server: {
-        host: 'ТВОЙ_СЕРВЕР.aternos.me',  // ЗАМЕНИ НА IP
-        port: 25565
+        host: 'botcreatortest.aternos.me',  // ЗАМЕНИ НА IP
+        port: 23209
     },
     bot: {
         username: 'StatusBot',
