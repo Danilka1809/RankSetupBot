@@ -1,11 +1,7 @@
 {
-  "name": "ranksetupbot",
+  "name": "rank-setup-bot",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {
-    "start": "node index.js"
-  },
-  "dependencies": {
-    "mineflayer": "^4.14.0"
-  }
+  "scripts": { "start": "node index.js" },
+  "dependencies": { "mineflayer": "^4.14.0" }
 }
